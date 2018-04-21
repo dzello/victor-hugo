@@ -68,6 +68,35 @@ gulp.task("server", ["hugo", "css", "js", "fonts"], () => {
   gulp.watch("./site/**/*", ["hugo"]);
 });
 
+// Development server with hugo --watch
+// Faster rebuilds but doesn't use browsersync so no automatic page refresh on asset changes
+// Good for when you're just editing content
+gulp.task("server-hugo", ["hugo-watch", "css", "js", "fonts"], () => {
+  // beware that asset changes won't reload the page like
+  // with browsersync; this mode is ideal for editing content
+  gulp.watch("./src/js/**/*.js", ["js"]);
+  gulp.watch("./src/css/**/*.css", ["css"]);
+  gulp.watch("./src/fonts/**/*", ["fonts"]);
+});
+
+/*
+* Run hugo server -w
+*/
+gulp.task("hugo-watch", (cb) => {
+  const args = ["server"].concat(hugoArgsDefault).concat(["-w", "-p", "3000"]);
+  if (process.env.HUGO_PREVIEW) {
+    args.push(...hugoArgsPreview);
+  }
+  process.env.NODE_ENV = "development";
+  return spawn(hugoBin, args, {stdio: "inherit"}).on("close", (code) => {
+    if (code === 0) {
+      cb();
+    } else {
+      cb("Hugo build failed");
+    }
+  });
+});
+
 /**
  * Run hugo and build the site
  */
